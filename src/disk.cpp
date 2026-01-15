@@ -19,7 +19,7 @@ std::vector<Partition> Disk::enumerate_partitions() {
   const uint8_t* mbr = read_mbr();
   std::vector<Partition> partitions;
   for (int i = 0; i<4; ++i) {
-    Partition part = Partition(mbr+446+16*i);
+    Partition part = Partition(mbr+446+16*i, f);
     if (part.type != EMPTY)
       partitions.push_back(part);
   }
