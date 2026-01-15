@@ -26,6 +26,7 @@ BasicFileRecord FAT32::readFileRecord(const uint8_t* sector, int index) {
   const void* entry = (const void*)(sector + index * FILE_ENTRY_SIZE);
   BasicFileRecord record;
   memcpy(record.filename, entry, 11);
+  record.filename[11] = 0;
   record.attributes = *(uint8_t*) (entry + 11);
   record.creation_time = *(uint16_t*) (entry+14);
   record.creation_time = *(uint16_t*) (entry+16);

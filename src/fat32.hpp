@@ -3,7 +3,7 @@
 
 #define FILE_ENTRY_SIZE 32
 typedef struct BasicFileRecord{
-  char filename[11];
+  char filename[12];
   uint8_t attributes;
   uint16_t creation_time;
   uint16_t creation_date;
