@@ -2,7 +2,9 @@
 #include "ext2/inode.hpp"
 #include "ext2/superblock.hpp"
 #include "ext2/block_group.hpp"
+#include "ext2/directory.hpp"
 #include "Partition.hpp"
+#include <vector>
 
 class Ext2 {
   public:
@@ -17,10 +19,12 @@ class Ext2 {
     void write_block(uint32_t offset, const void* data);
     void read_blocks(uint32_t offset, size_t count, void* buffer) const;
     void write_blocks(uint32_t offset, size_t count, const void* data);
+    std::vector<directory_entry> list_root_directory();
     block_group_descriptor* bgdt;
     size_t inode_size;
   private:
     Partition& p;
+    std::vector<directory_entry> list_directory(uint32_t block_n);
     const LBA block_to_LBA(const uint32_t block) const;
     friend std::ostream& operator<<(std::ostream& os, const Ext2& fs);
 };

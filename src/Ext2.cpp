@@ -1,4 +1,5 @@
 #include "ext2/Ext2.hpp"
+#include <cstring>
 
 Ext2::Ext2(Partition& _p) : p(_p) {
   uint8_t super_sector[SECTOR_SIZE];
@@ -58,4 +59,30 @@ std::ostream& operator<<(std::ostream& os, const Ext2& fs) {
   os << "\tTotal blocks: " << fs.total_blocks << std::endl;
   os << "\tInode size: " << fs.inode_size << std::endl;
   return os;
+}
+
+std::vector<directory_entry> Ext2::list_root_directory() {
+  inode inode_table[block_size / inode_size];
+  read_block(bgdt[0].inode_table_address, inode_table);
+  return list_directory(inode_table[1].direct_block_pointer[0]);
+}
+
+std::vector<directory_entry> Ext2::list_directory(uint32_t block_n) {
+  uint8_t dir_block[block_size];
+  read_block(block_n, dir_block);
+  uint8_t* p = dir_block;
+  std::vector<directory_entry> files;
+  while (p - dir_block < block_size) {
+    uint32_t inode = *(uint32_t*)(p);
+    uint16_t entry_size = *(uint16_t*)(p+4);
+    uint8_t name_length = p[6];
+    uint8_t type = p[7];
+    char* name = new char[name_length];
+    memcpy(name, p+8, name_length);
+    directory_entry file = {.inode = inode, .type = type, .entry_size = entry_size, .name = std::string(name)};
+    files.push_back(file);
+    delete[] name;
+    p += entry_size;
+  }
+  return files;
 }
