@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS =
+CXXFLAGS = -g
 
 TARGET = disk-ls
 SRCS = $(wildcard src/*.cpp)
