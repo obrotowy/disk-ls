@@ -1,4 +1,4 @@
-#include "Ext2.hpp"
+#include "ext2/Ext2.hpp"
 
 Ext2::Ext2(Partition& _p) : p(_p) {
   uint8_t super_sector[SECTOR_SIZE];
