@@ -5,6 +5,7 @@ Disk::Disk(const char* fname) {
 }
 
 Disk::~Disk() {
+  fclose(f);
 }
 
 void Disk::read_sectors(LBA offset, size_t count, void* buffer) const {

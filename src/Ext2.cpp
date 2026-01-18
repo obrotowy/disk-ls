@@ -23,7 +23,7 @@ Ext2::Ext2(Partition& _p) : p(_p) {
 }
 
 Ext2::~Ext2() {
-  //delete bgdt;
+  delete[] bgdt;
 }
 
 void Ext2::print_block_info(uint32_t block_n) {
