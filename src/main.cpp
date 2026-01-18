@@ -16,7 +16,9 @@ int main(int argc, const char** argv) {
     if (p.type == EXT2) {
       Ext2 fs(p);
       std::cout << fs;
-      fs.print_block_info(0);
+      inode* inode_table = new inode[fs.block_size/fs.inode_size];
+      fs.read_block(fs.bgdt[0].inode_table_address, inode_table);
+      std::cout << "0x" << std::hex << inode_table[1].direct_block_pointer[0] << std::endl;
     }
   }
 }

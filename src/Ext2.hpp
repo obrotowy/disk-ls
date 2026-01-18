@@ -38,6 +38,29 @@ typedef struct __attribute__((packed)) block_group_descriptor {
   uint16_t directories;
 } block_group_descriptor;
 
+typedef struct __attribute__((packed)) inode {
+  uint16_t type_and_permissions;
+  uint16_t user_id;
+  uint32_t size_lower;
+  uint32_t last_access_time;
+  uint32_t creation_time;
+  uint32_t last_modification_time;
+  uint32_t deletion_time;
+  uint16_t group_id;
+  uint16_t hard_links_count;
+  uint32_t disk_sectors_used;
+  uint32_t flags;
+  uint32_t os_specific;
+  uint32_t direct_block_pointer[12];
+  uint32_t singly_indirect_block_pointer;
+  uint32_t doubly_indirect_block_pointer;
+  uint32_t triply_indirect_block_pointer;
+  uint32_t generation_number;
+  uint32_t reserved[2];
+  uint32_t block_address_of_fragment;
+  uint32_t os_specific_value[3];
+} inode;
+
 class Ext2 {
   public:
     Ext2(Partition& _p);
@@ -47,14 +70,14 @@ class Ext2 {
     uint32_t block_size;
     uint32_t blocks_per_group;
     void print_block_info(uint32_t block_n);
-  private:
-    Partition& p;
-    block_group_descriptor* bgdt;
-    size_t inode_size;
     void read_block(uint32_t offset, void* buffer) const;
     void write_block(uint32_t offset, const void* data);
     void read_blocks(uint32_t offset, size_t count, void* buffer) const;
     void write_blocks(uint32_t offset, size_t count, const void* data);
+    block_group_descriptor* bgdt;
+    size_t inode_size;
+  private:
+    Partition& p;
     const LBA block_to_LBA(const uint32_t block) const;
     friend std::ostream& operator<<(std::ostream& os, const Ext2& fs);
 };
