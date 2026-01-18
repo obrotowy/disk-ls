@@ -14,7 +14,7 @@ void Disk::read_sectors(LBA offset, size_t count, void* buffer) const {
   return;
 }
 
-void Disk::write_sectors(LBA offset, size_t count, void* data) {
+void Disk::write_sectors(LBA offset, size_t count, const void* data) {
   const long byte_offset = offset * SECTOR_SIZE;
   fseek(f, byte_offset, SEEK_SET);
   size_t written = fwrite(data, count, SECTOR_SIZE, f);
