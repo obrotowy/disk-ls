@@ -1,3 +1,4 @@
+#pragma once
 #include "Disk.hpp"
 #include <iostream>
 #include <vector>
