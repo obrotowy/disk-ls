@@ -15,7 +15,8 @@ int main(int argc, const char** argv) {
     std::cout << p;
     if (p.type == EXT2) {
       Ext2 fs(p);
-      std::cout << "Ext2 Block size: " << fs.block_size << std::endl;
+      std::cout << fs;
+      fs.print_block_info(0);
     }
   }
 }
