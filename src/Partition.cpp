@@ -19,10 +19,7 @@ void Partition::write_sectors(LBA offset, size_t count, const void* data) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Partition& p) {
-  os << "Bootable: " << ((p.bootable) ? "Yes" : "No") << std::endl;
-  os << "Type: 0x" << std::hex << static_cast<unsigned>(p.type) << std::endl;
-  os << "Begin LBA: 0x" << std::hex << p.begin << std::endl;
-  os << "Size: " << std::dec << p.size << " sectors\n";
+  os << p.begin << '\t' << p.begin + p.size << '\t' << p.size << '\t' << (p.size * 512)/1048576 << " MB\t0x" << std::hex << static_cast<unsigned>(p.type);
   return os;
 }
 

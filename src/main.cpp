@@ -11,16 +11,8 @@ int main(int argc, const char** argv) {
   }
   Disk d = Disk(argv[1]);
   std::vector<Partition> partitions = enumerate_partitions(d);
-  for (Partition& p: partitions) {
-    std::cout << p;
-    if (p.type == EXT2) {
-      Ext2 fs(p);
-      std::cout << fs;
-      const std::vector<directory_entry> root_dir = fs.list_root_directory();
-      for (const directory_entry& f: root_dir) {
-        std::cout << "Filename: " << f.name << std::endl;
-        std::cout << "Inode: " << std::hex << f.inode << std::endl;
-      }
-    }
+  std::cout << "\tStart\tEnd\tSectors\tSize\tType" << std::endl;
+  for (int i = 0; i<partitions.size(); ++i) {
+    std::cout << i << '\t' << partitions[i] << std::endl;
   }
 }
