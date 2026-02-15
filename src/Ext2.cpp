@@ -17,6 +17,7 @@ Ext2::Ext2(Partition& _p) : p(_p) {
   TOTAL_INODES = super_block.total_inodes;
   BLOCK_SIZE = 1024 << super_block.log2_block_size;
   BLOCKS_PER_GROUP = super_block.blocks_per_group;
+  INODES_PER_GROUP = super_block.inodes_per_group;
   bgdt = new block_group_descriptor[TOTAL_BLOCKS / BLOCKS_PER_GROUP];
   const uint32_t bgdt_size_in_blocks = ((TOTAL_BLOCKS / BLOCKS_PER_GROUP) * sizeof(block_group_descriptor)) / BLOCK_SIZE;
   const uint32_t bgdt_offset = (BLOCK_SIZE == 1024) ? 2 : 1;
@@ -53,11 +54,13 @@ void Ext2::write_blocks(uint32_t offset, size_t count, const void* buffer) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Ext2& fs) {
+  os << std::dec;
   os << "Ext2 partition:" << std::endl;
   os << "\tBlock Size: " << fs.BLOCK_SIZE << std::endl;
   os << "\tBlocks per group: " << fs.BLOCKS_PER_GROUP << std::endl;
   os << "\tTotal blocks: " << fs.TOTAL_BLOCKS << std::endl;
   os << "\tInode size: " << fs.INODE_SIZE << std::endl;
+  os << "\tInodes per group: " << fs.INODES_PER_GROUP << std::endl;
   return os;
 }
 
@@ -85,4 +88,13 @@ std::vector<directory_entry> Ext2::list_directory(uint32_t block_n) {
     p += entry_size;
   }
   return files;
+}
+
+inode Ext2::get_inode(const uint32_t& inode_n) {
+  const unsigned block_group = (inode_n - 1) / INODES_PER_GROUP;
+  const unsigned index = (inode_n - 1) % INODES_PER_GROUP;
+  const unsigned inode_table_block = (index * INODE_SIZE) / BLOCK_SIZE;
+  inode inode_table[BLOCK_SIZE / INODE_SIZE];
+  read_block(bgdt[block_group].inode_table_address + inode_table_block, inode_table);
+  return inode_table[index];
 }
