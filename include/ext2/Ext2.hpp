@@ -10,10 +10,11 @@ class Ext2 {
   public:
     Ext2(Partition& _p);
     ~Ext2();
-    uint32_t total_blocks;
-    uint32_t total_inodes;
-    uint32_t block_size;
-    uint32_t blocks_per_group;
+    uint32_t TOTAL_BLOCKS;
+    uint32_t TOTAL_INODES;
+    uint32_t BLOCK_SIZE;
+    uint32_t BLOCKS_PER_GROUP;
+    size_t INODE_SIZE;
     void print_block_info(uint32_t block_n);
     void read_block(uint32_t offset, void* buffer) const;
     void write_block(uint32_t offset, const void* data);
@@ -21,7 +22,6 @@ class Ext2 {
     void write_blocks(uint32_t offset, size_t count, const void* data);
     std::vector<directory_entry> list_root_directory();
     block_group_descriptor* bgdt;
-    size_t inode_size;
   private:
     Partition& p;
     std::vector<directory_entry> list_directory(uint32_t block_n);

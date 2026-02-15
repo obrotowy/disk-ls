@@ -9,17 +9,17 @@ Ext2::Ext2(Partition& _p) : p(_p) {
     throw -1;
   }
   if (super_block.major_version == 0) {
-    inode_size = 128;
+    INODE_SIZE = 128;
   } else {
-    inode_size = *(uint32_t*)(super_sector + 88);
+    INODE_SIZE = *(uint32_t*)(super_sector + 88);
   }
-  total_blocks = super_block.total_blocks;
-  total_inodes = super_block.total_inodes;
-  block_size = 1024 << super_block.log2_block_size;
-  blocks_per_group = super_block.blocks_per_group;
-  bgdt = new block_group_descriptor[total_blocks / blocks_per_group];
-  const uint32_t bgdt_size_in_blocks = ((total_blocks / blocks_per_group) * sizeof(block_group_descriptor)) / block_size;
-  const uint32_t bgdt_offset = (block_size == 1024) ? 2 : 1;
+  TOTAL_BLOCKS = super_block.total_blocks;
+  TOTAL_INODES = super_block.total_inodes;
+  BLOCK_SIZE = 1024 << super_block.log2_block_size;
+  BLOCKS_PER_GROUP = super_block.blocks_per_group;
+  bgdt = new block_group_descriptor[TOTAL_BLOCKS / BLOCKS_PER_GROUP];
+  const uint32_t bgdt_size_in_blocks = ((TOTAL_BLOCKS / BLOCKS_PER_GROUP) * sizeof(block_group_descriptor)) / BLOCK_SIZE;
+  const uint32_t bgdt_offset = (BLOCK_SIZE == 1024) ? 2 : 1;
   read_blocks(bgdt_offset, bgdt_size_in_blocks, bgdt);
 }
 
@@ -33,46 +33,46 @@ void Ext2::print_block_info(uint32_t block_n) {
 }
 
 const LBA Ext2::block_to_LBA(const uint32_t block) const {
-  return (block_size / SECTOR_SIZE) * block;
+  return (BLOCK_SIZE / SECTOR_SIZE) * block;
 }
 
 void Ext2::read_block(uint32_t offset, void* buffer) const {
-  return p.read_sectors(block_to_LBA(offset), block_size/SECTOR_SIZE, buffer);
+  return p.read_sectors(block_to_LBA(offset), BLOCK_SIZE/SECTOR_SIZE, buffer);
 }
 
 void Ext2::write_block(uint32_t offset, const void* buffer) {
-  return p.write_sectors(block_to_LBA(offset), block_size/SECTOR_SIZE, buffer);
+  return p.write_sectors(block_to_LBA(offset), BLOCK_SIZE/SECTOR_SIZE, buffer);
 }
 
 void Ext2::read_blocks(uint32_t offset, size_t count, void* buffer) const {
-  return p.read_sectors(block_to_LBA(offset), (block_size/SECTOR_SIZE) * count, buffer);
+  return p.read_sectors(block_to_LBA(offset), (BLOCK_SIZE/SECTOR_SIZE) * count, buffer);
 }
 
 void Ext2::write_blocks(uint32_t offset, size_t count, const void* buffer) {
-  return p.write_sectors(block_to_LBA(offset), (block_size/SECTOR_SIZE) * count, buffer);
+  return p.write_sectors(block_to_LBA(offset), (BLOCK_SIZE/SECTOR_SIZE) * count, buffer);
 }
 
 std::ostream& operator<<(std::ostream& os, const Ext2& fs) {
   os << "Ext2 partition:" << std::endl;
-  os << "\tBlock Size: " << fs.block_size << std::endl;
-  os << "\tBlocks per group: " << fs.blocks_per_group << std::endl;
-  os << "\tTotal blocks: " << fs.total_blocks << std::endl;
-  os << "\tInode size: " << fs.inode_size << std::endl;
+  os << "\tBlock Size: " << fs.BLOCK_SIZE << std::endl;
+  os << "\tBlocks per group: " << fs.BLOCKS_PER_GROUP << std::endl;
+  os << "\tTotal blocks: " << fs.TOTAL_BLOCKS << std::endl;
+  os << "\tInode size: " << fs.INODE_SIZE << std::endl;
   return os;
 }
 
 std::vector<directory_entry> Ext2::list_root_directory() {
-  inode inode_table[block_size / inode_size];
+  inode inode_table[BLOCK_SIZE / INODE_SIZE];
   read_block(bgdt[0].inode_table_address, inode_table);
   return list_directory(inode_table[1].direct_block_pointer[0]);
 }
 
 std::vector<directory_entry> Ext2::list_directory(uint32_t block_n) {
-  uint8_t dir_block[block_size];
+  uint8_t dir_block[BLOCK_SIZE];
   read_block(block_n, dir_block);
   uint8_t* p = dir_block;
   std::vector<directory_entry> files;
-  while (p - dir_block < block_size) {
+  while (p - dir_block < BLOCK_SIZE) {
     uint32_t inode = *(uint32_t*)(p);
     uint16_t entry_size = *(uint16_t*)(p+4);
     uint8_t name_length = p[6];
