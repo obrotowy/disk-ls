@@ -3,6 +3,57 @@
 #include "ext2/Ext2.hpp"
 #include <iostream>
 #include <cstring>
+#include <sstream>
+
+void list_partitions(const std::vector<Partition>& partitions) {
+  std::cout << "\tStart\tEnd\tSectors\tSize\tType" << std::endl;
+  for (int i = 0; i<partitions.size(); ++i) {
+    std::cout << i << '\t' << partitions[i] << std::endl;
+  }
+}
+
+void interface_loop(std::vector<Partition>& partitions, int partition_n) {
+  Ext2 fs(partitions[partition_n]);
+  uint32_t current_inode_n = 2;   // start with root directory
+  std::string current_path = "/";
+
+  auto process_cmd = [&](std::vector<std::string>& tokens) {
+    if (tokens.empty()) return;
+
+    const std::string& cmd = tokens[0];
+
+    if (cmd == "ls") {
+      for (const auto& e: fs.list_directory(current_inode_n)) {
+        std::cout << e.name << '\t' << std::dec << e.inode << std::endl;
+      }
+    }
+
+    else if (cmd == "cd") {
+      std::vector<std::string> path_elements;
+      std::stringstream ss(tokens[1]);
+      std::string item;
+
+      while (std::getline(ss, item, '/')) {
+          path_elements.push_back(item);
+      }
+      current_inode_n = fs.traverse_path(path_elements, current_inode_n);
+      current_path = tokens[1];
+    }
+    else if (cmd == "exit")
+      exit(0);
+  };
+
+  std::string line;
+  while (std::cout << current_path << "$ " && std::getline(std::cin, line)) {
+    std::stringstream ss(line);
+    std::string token;
+    std::vector<std::string> tokens;
+
+    while (ss >> token) tokens.push_back(token);
+
+    process_cmd(tokens);
+  }
+}
 
 int main(int argc, const char** argv) {
   if (argc < 2) {
@@ -11,15 +62,15 @@ int main(int argc, const char** argv) {
   }
   Disk d = Disk(argv[1]);
   std::vector<Partition> partitions = enumerate_partitions(d);
-  std::cout << "\tStart\tEnd\tSectors\tSize\tType" << std::endl;
-  for (int i = 0; i<partitions.size(); ++i) {
-    std::cout << i << '\t' << partitions[i] << std::endl;
-  }
+  list_partitions(partitions);
   
-  Ext2 fs(partitions[0]);
-  inode root_dir = fs.get_inode(2);
-  std::vector<directory_entry> files_in_root = fs.list_directory(root_dir.direct_block_pointer[0]);
-  for (const directory_entry& e: files_in_root) {
-    std::cout << e.name << std::endl;
-  }
+  unsigned int current_partition;
+  std::string current_path = "/";
+  std::cout << "Select partition: ";
+  std::cin >> current_partition;
+
+  if (current_partition >= partitions.size())
+    throw std::out_of_range("Partition number out of range.");
+  
+  interface_loop(partitions, current_partition);
 }

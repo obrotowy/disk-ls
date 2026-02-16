@@ -21,9 +21,10 @@ class Ext2 {
     void write_block(uint32_t offset, const void* data);
     void read_blocks(uint32_t offset, size_t count, void* buffer) const;
     void write_blocks(uint32_t offset, size_t count, const void* data);
-    inode get_inode(const uint32_t& inode);
+    inode_t get_inode(const uint32_t& inode);
     std::vector<directory_entry> list_root_directory();
     std::vector<directory_entry> list_directory(uint32_t block_n);
+    uint32_t traverse_path(const std::vector<std::string>& path_elements, const int& starting_inode);
     block_group_descriptor* bgdt;
   private:
     Partition& p;

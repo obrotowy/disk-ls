@@ -1,5 +1,6 @@
 #include "ext2/Ext2.hpp"
 #include <cstring>
+#include <algorithm>
 
 Ext2::Ext2(Partition& _p) : p(_p) {
   uint8_t super_sector[SECTOR_SIZE];
@@ -65,12 +66,14 @@ std::ostream& operator<<(std::ostream& os, const Ext2& fs) {
 }
 
 std::vector<directory_entry> Ext2::list_root_directory() {
-  inode inode_table[BLOCK_SIZE / INODE_SIZE];
+  inode_t inode_table[BLOCK_SIZE / INODE_SIZE];
   read_block(bgdt[0].inode_table_address, inode_table);
   return list_directory(inode_table[1].direct_block_pointer[0]);
 }
 
-std::vector<directory_entry> Ext2::list_directory(uint32_t block_n) {
+std::vector<directory_entry> Ext2::list_directory(uint32_t inode_n) {
+  inode_t inode = get_inode(inode_n);
+  const uint32_t& block_n = inode.direct_block_pointer[0];
   uint8_t dir_block[BLOCK_SIZE];
   read_block(block_n, dir_block);
   uint8_t* p = dir_block;
@@ -90,11 +93,23 @@ std::vector<directory_entry> Ext2::list_directory(uint32_t block_n) {
   return files;
 }
 
-inode Ext2::get_inode(const uint32_t& inode_n) {
+inode_t Ext2::get_inode(const uint32_t& inode_n) {
   const unsigned block_group = (inode_n - 1) / INODES_PER_GROUP;
   const unsigned index = (inode_n - 1) % INODES_PER_GROUP;
   const unsigned inode_table_block = (index * INODE_SIZE) / BLOCK_SIZE;
-  inode inode_table[BLOCK_SIZE / INODE_SIZE];
+  inode_t inode_table[BLOCK_SIZE / INODE_SIZE];
   read_block(bgdt[block_group].inode_table_address + inode_table_block, inode_table);
   return inode_table[index];
+}
+
+uint32_t Ext2::traverse_path(const std::vector<std::string>& path_elements, const int& starting_inode = 2) {
+  int current_inode = starting_inode;
+  for (const auto& e: path_elements) {
+    std::vector<directory_entry> curr_dir_listing = list_directory(current_inode);
+    auto target = std::find_if(curr_dir_listing.begin(), curr_dir_listing.end(), [&](directory_entry& c){return c.name == e;});
+    if (target == curr_dir_listing.end())
+      throw std::exception();
+    current_inode = target->inode;
+  }
+  return current_inode;
 }

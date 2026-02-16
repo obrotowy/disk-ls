@@ -9,4 +9,5 @@ typedef struct __attribute__((packed)) block_group_descriptor {
   uint16_t unallocated_blocks;
   uint16_t unallocated_inodes;
   uint16_t directories;
+  uint8_t unused[14];
 } block_group_descriptor;

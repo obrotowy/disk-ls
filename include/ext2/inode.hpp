@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-typedef struct __attribute__((packed)) inode {
+typedef struct __attribute__((packed)) inode_t {
   uint16_t type_and_permissions;
   uint16_t user_id;
   uint32_t size_lower;
@@ -22,4 +22,4 @@ typedef struct __attribute__((packed)) inode {
   uint32_t reserved[2];
   uint32_t block_address_of_fragment;
   uint32_t os_specific_value[3];
-} inode;
+} inode_t;
