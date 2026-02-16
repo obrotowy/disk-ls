@@ -39,8 +39,6 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
       current_inode_n = fs.traverse_path(path_elements, current_inode_n);
       current_path = tokens[1];
     }
-    else if (cmd == "exit")
-      exit(0);
   };
 
   std::string line;
@@ -49,8 +47,11 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
     std::string token;
     std::vector<std::string> tokens;
 
-    while (ss >> token) tokens.push_back(token);
-
+    while (ss >> token) {
+      if (token == "exit")
+        return;
+      tokens.push_back(token);
+    }
     process_cmd(tokens);
   }
 }
