@@ -83,8 +83,9 @@ std::vector<directory_entry> Ext2::list_directory(uint32_t inode_n) {
     uint16_t entry_size = *(uint16_t*)(p+4);
     uint8_t name_length = p[6];
     uint8_t type = p[7];
-    char* name = new char[name_length];
+    char* name = new char[name_length+1];
     memcpy(name, p+8, name_length);
+    name[name_length] = 0;
     directory_entry file = {.inode = inode, .type = type, .entry_size = entry_size, .name = std::string(name)};
     files.push_back(file);
     delete[] name;
@@ -97,9 +98,10 @@ inode_t Ext2::get_inode(const uint32_t& inode_n) {
   const unsigned block_group = (inode_n - 1) / INODES_PER_GROUP;
   const unsigned index = (inode_n - 1) % INODES_PER_GROUP;
   const unsigned inode_table_block = (index * INODE_SIZE) / BLOCK_SIZE;
+  const unsigned index_in_block = (inode_n - 1) % (BLOCK_SIZE / INODE_SIZE);
   inode_t inode_table[BLOCK_SIZE / INODE_SIZE];
   read_block(bgdt[block_group].inode_table_address + inode_table_block, inode_table);
-  return inode_table[index];
+  return inode_table[index_in_block];
 }
 
 uint32_t Ext2::traverse_path(const std::vector<std::string>& path_elements, const int& starting_inode = 2) {
@@ -112,4 +114,23 @@ uint32_t Ext2::traverse_path(const std::vector<std::string>& path_elements, cons
     current_inode = target->inode;
   }
   return current_inode;
+}
+
+const char* Ext2::readfile(const inode_t& fd) {
+  const size_t& fsize = fd.size_lower;
+  if (fsize > BLOCK_SIZE * 12)
+    // File don't fit in direct block pointers
+    throw std::exception();
+  char* output_buf = new char[fsize];
+  int i = 0;
+  // read whole blocks of file
+  for (;i<(fsize/BLOCK_SIZE); ++i) {
+    read_block(fd.direct_block_pointer[i], output_buf+i*BLOCK_SIZE);
+  }
+  char tmp_buf[BLOCK_SIZE];
+  if (i > 0)
+    ++i;
+  read_block(fd.direct_block_pointer[i], tmp_buf);
+  memcpy(output_buf + i*BLOCK_SIZE, tmp_buf, fsize % BLOCK_SIZE);
+  return output_buf;
 }

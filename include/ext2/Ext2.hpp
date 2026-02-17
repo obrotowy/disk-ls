@@ -25,6 +25,7 @@ class Ext2 {
     std::vector<directory_entry> list_root_directory();
     std::vector<directory_entry> list_directory(uint32_t block_n);
     uint32_t traverse_path(const std::vector<std::string>& path_elements, const int& starting_inode);
+    const char* readfile(const inode_t& fd);
     block_group_descriptor* bgdt;
   private:
     Partition& p;

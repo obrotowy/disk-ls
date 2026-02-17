@@ -12,6 +12,17 @@ void list_partitions(const std::vector<Partition>& partitions) {
   }
 }
 
+const std::vector<std::string> split_path(const std::string& path) {
+  std::vector<std::string> path_elements;
+  std::stringstream ss(path);
+  std::string item;
+
+  while (std::getline(ss, item, '/')) {
+      path_elements.push_back(item);
+  }
+  return path_elements;
+}
+
 void interface_loop(std::vector<Partition>& partitions, int partition_n) {
   Ext2 fs(partitions[partition_n]);
   uint32_t current_inode_n = 2;   // start with root directory
@@ -29,15 +40,17 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
     }
 
     else if (cmd == "cd") {
-      std::vector<std::string> path_elements;
-      std::stringstream ss(tokens[1]);
-      std::string item;
-
-      while (std::getline(ss, item, '/')) {
-          path_elements.push_back(item);
-      }
+      const std::vector<std::string> path_elements = split_path(tokens[1]);
       current_inode_n = fs.traverse_path(path_elements, current_inode_n);
       current_path = tokens[1];
+    }
+    
+    else if (cmd == "cat") {
+      const std::vector<std::string> path_elements = split_path(tokens[1]);
+      const uint32_t file_inode_n = fs.traverse_path(path_elements, current_inode_n);
+      const char* file = fs.readfile(fs.get_inode(file_inode_n));
+      std::cout << file << std::endl;
+      delete[] file;
     }
   };
 
