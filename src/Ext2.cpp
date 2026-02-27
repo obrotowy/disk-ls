@@ -121,16 +121,20 @@ const char* Ext2::readfile(const inode_t& fd) {
   if (fsize > BLOCK_SIZE * 12)
     // File don't fit in direct block pointers
     throw std::exception();
+
   char* output_buf = new char[fsize];
-  int i = 0;
-  // read whole blocks of file
-  for (;i<(fsize/BLOCK_SIZE); ++i) {
+  int whole_blocks = fsize / BLOCK_SIZE;
+  int remainder = fsize % BLOCK_SIZE;
+
+  // Read whole blocks
+  for (int i = 0; i<whole_blocks; ++i) {
     read_block(fd.direct_block_pointer[i], output_buf+i*BLOCK_SIZE);
   }
+
+  // Read the remainder from last block of file
   char tmp_buf[BLOCK_SIZE];
-  if (i > 0)
-    ++i;
-  read_block(fd.direct_block_pointer[i], tmp_buf);
-  memcpy(output_buf + i*BLOCK_SIZE, tmp_buf, fsize % BLOCK_SIZE);
+  read_block(fd.direct_block_pointer[whole_blocks], tmp_buf);
+  memcpy(output_buf + whole_blocks*BLOCK_SIZE, tmp_buf, remainder);
+  
   return output_buf;
 }
