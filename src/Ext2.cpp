@@ -65,14 +65,11 @@ std::ostream& operator<<(std::ostream& os, const Ext2& fs) {
   return os;
 }
 
-std::vector<directory_entry> Ext2::list_directory(uint32_t inode_n) {
-  inode_t inode = get_inode(inode_n);
-  const uint32_t& block_n = inode.direct_block_pointer[0];
-  uint8_t dir_block[BLOCK_SIZE];
-  read_block(block_n, dir_block);
-  uint8_t* p = dir_block;
+std::vector<directory_entry> Ext2::list_directory(const inode_t& inode) {
+  const uint8_t* dir = (uint8_t*) (read_file(inode));
+  uint8_t* p = (uint8_t*) dir;
   std::vector<directory_entry> files;
-  while (p - dir_block < BLOCK_SIZE) {
+  while (p - dir < inode.size_lower) {
     uint32_t inode = *(uint32_t*)(p);
     uint16_t entry_size = *(uint16_t*)(p+4);
     uint8_t name_length = p[6];
@@ -104,7 +101,7 @@ uint32_t Ext2::traverse_path(const std::string& path, const int& starting_inode 
   int current_inode = starting_inode;
   const std::vector<std::string>& path_elements = split_path(path);
   for (const auto& e: path_elements) {
-    std::vector<directory_entry> curr_dir_listing = list_directory(current_inode);
+    std::vector<directory_entry> curr_dir_listing = list_directory(get_inode(current_inode));
     auto target = std::find_if(curr_dir_listing.begin(), curr_dir_listing.end(), [&](directory_entry& c){return c.name == e;});
     if (target == curr_dir_listing.end())
       throw std::exception();
@@ -143,7 +140,7 @@ const char* Ext2::read_file(const std::string& path) {
 
 const std::vector<File> Ext2::list_directory(const std::string& path) {
   uint32_t inode_n = traverse_path(path);
-  std::vector<directory_entry> dir = list_directory(inode_n);
+  std::vector<directory_entry> dir = list_directory(get_inode(inode_n));
   std::vector<File> ret_value{};
   for (const auto& e: dir) {
     ret_value.push_back(File(e));

@@ -13,7 +13,7 @@ class Ext2 : public FileSystem {
     Ext2(Partition& _p);
     const char* read_file(const std::string& path);
     const std::vector<File> list_directory(const std::string& path);
-    std::vector<directory_entry> list_directory(uint32_t block_n);
+    std::vector<directory_entry> list_directory(const inode_t& inode);
     ~Ext2();
   private:
     uint32_t TOTAL_BLOCKS;
