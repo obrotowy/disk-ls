@@ -1,5 +1,6 @@
 #pragma once
 #include "FileSystem.hpp"
+#include "File.hpp"
 #include "ext2/inode.hpp"
 #include "ext2/superblock.hpp"
 #include "ext2/block_group.hpp"
@@ -11,7 +12,7 @@ class Ext2 : public FileSystem {
   public:
     Ext2(Partition& _p);
     const char* read_file(const std::string& path);
-    //const std::vector<std::string> list_directory(const std::string& path);
+    const std::vector<File> list_directory(const std::string& path);
     std::vector<directory_entry> list_directory(uint32_t block_n);
     ~Ext2();
   private:

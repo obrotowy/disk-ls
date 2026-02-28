@@ -1,4 +1,5 @@
 #pragma once
+#include "File.hpp"
 #include <string>
 #include <vector>
 #include <sstream>
@@ -6,7 +7,7 @@
 class FileSystem {
   public:
     virtual const char* read_file(const std::string& path) = 0;
-    //virtual const std::vector<std::string> list_directory(const std::string& path) = 0;
+    virtual const std::vector<File> list_directory(const std::string& path) = 0;
 };
 
 static const std::vector<std::string> split_path(const std::string& path) {

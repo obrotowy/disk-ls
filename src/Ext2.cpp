@@ -99,6 +99,8 @@ inode_t Ext2::get_inode(const uint32_t& inode_n) {
 }
 
 uint32_t Ext2::traverse_path(const std::string& path, const int& starting_inode = 2) {
+  if (path == "/")
+    return 2;
   int current_inode = starting_inode;
   const std::vector<std::string>& path_elements = split_path(path);
   for (const auto& e: path_elements) {
@@ -137,4 +139,14 @@ const char* Ext2::read_file(const inode_t& fd) {
 const char* Ext2::read_file(const std::string& path) {
   inode_t fd = get_inode(traverse_path(path));
   return read_file(fd);
+}
+
+const std::vector<File> Ext2::list_directory(const std::string& path) {
+  uint32_t inode_n = traverse_path(path);
+  std::vector<directory_entry> dir = list_directory(inode_n);
+  std::vector<File> ret_value{};
+  for (const auto& e: dir) {
+    ret_value.push_back(File(e));
+  }
+  return ret_value;
 }

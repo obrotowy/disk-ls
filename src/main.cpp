@@ -24,8 +24,8 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
     const std::string& cmd = tokens[0];
 
     if (cmd == "ls") {
-      for (const auto& e: fs.list_directory(current_inode_n)) {
-        std::cout << e.name << '\t' << std::dec << e.inode << std::endl;
+      for (const auto& e: fs.list_directory(current_path)) {
+        std::cout << e.name << std::endl;
       }
     }
 
