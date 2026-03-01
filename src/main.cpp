@@ -25,7 +25,8 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
 
     if (cmd == "ls") {
       for (const auto& e: fs.list_directory(current_path)) {
-        std::cout << e.name << std::endl;
+        auto* f = dynamic_cast<Ext2File*>(e.get());
+        std::cout << f->name << std::endl;
       }
     }
 

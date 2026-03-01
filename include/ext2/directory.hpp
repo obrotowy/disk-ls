@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include "File.hpp"
+
 
 typedef struct directory_entry{
   uint32_t inode;
@@ -8,3 +10,8 @@ typedef struct directory_entry{
   uint16_t entry_size;
   std::string name;
 } directory_entry;
+
+class Ext2File : public File {
+  public:
+    uint32_t inode;
+};

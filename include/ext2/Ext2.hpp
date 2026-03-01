@@ -7,13 +7,13 @@
 #include "ext2/directory.hpp"
 #include "Partition.hpp"
 #include <vector>
+#include <memory>
 
 class Ext2 : public FileSystem {
   public:
     Ext2(Partition& _p);
     const char* read_file(const std::string& path);
-    const std::vector<File> list_directory(const std::string& path);
-    std::vector<directory_entry> list_directory(const inode_t& inode);
+    const std::vector<std::unique_ptr<File>> list_directory(const std::string& path);
     ~Ext2();
   private:
     uint32_t TOTAL_BLOCKS;
@@ -34,4 +34,5 @@ class Ext2 : public FileSystem {
     void write_blocks(uint32_t offset, size_t count, const void* data);
     const LBA block_to_LBA(const uint32_t block) const;
     friend std::ostream& operator<<(std::ostream& os, const Ext2& fs);
+    std::vector<std::unique_ptr<File>> list_directory(const inode_t& inode);
 };

@@ -1,6 +1,7 @@
 #include "ext2/Ext2.hpp"
 #include <cstring>
 #include <algorithm>
+#include <memory>
 
 Ext2::Ext2(Partition& _p) : p(_p) {
   uint8_t super_sector[SECTOR_SIZE];
@@ -65,22 +66,23 @@ std::ostream& operator<<(std::ostream& os, const Ext2& fs) {
   return os;
 }
 
-std::vector<directory_entry> Ext2::list_directory(const inode_t& inode) {
+std::vector<std::unique_ptr<File>> Ext2::list_directory(const inode_t& inode) {
   const uint8_t* dir = (uint8_t*) (read_file(inode));
   uint8_t* p = (uint8_t*) dir;
-  std::vector<directory_entry> files;
+  std::vector<std::unique_ptr<File>> files;
   while (p - dir < inode.size_lower) {
-    uint32_t inode = *(uint32_t*)(p);
-    uint16_t entry_size = *(uint16_t*)(p+4);
+    std::unique_ptr<Ext2File> f = std::make_unique<Ext2File>();
+    f->inode = *(uint32_t*)(p);
+    //uint16_t entry_size = *(uint16_t*)(p+4);
     uint8_t name_length = p[6];
-    uint8_t type = p[7];
+    f->type = static_cast<FILE_TYPE>(p[7]);
     char* name = new char[name_length+1];
     memcpy(name, p+8, name_length);
     name[name_length] = 0;
-    directory_entry file = {.inode = inode, .type = type, .entry_size = entry_size, .name = std::string(name)};
-    files.push_back(file);
+    f->name = std::string(name);
     delete[] name;
-    p += entry_size;
+    files.push_back(std::move(f));
+    p += *(uint16_t*)(p+4);
   }
   return files;
 }
@@ -101,11 +103,12 @@ uint32_t Ext2::traverse_path(const std::string& path, const int& starting_inode 
   int current_inode = starting_inode;
   const std::vector<std::string>& path_elements = split_path(path);
   for (const auto& e: path_elements) {
-    std::vector<directory_entry> curr_dir_listing = list_directory(get_inode(current_inode));
-    auto target = std::find_if(curr_dir_listing.begin(), curr_dir_listing.end(), [&](directory_entry& c){return c.name == e;});
+    std::vector<std::unique_ptr<File>> curr_dir_listing = list_directory(get_inode(current_inode));
+    auto target = std::find_if(curr_dir_listing.begin(), curr_dir_listing.end(), [&](const std::unique_ptr<File>& f){return f->name == e;});
     if (target == curr_dir_listing.end())
       throw std::exception();
-    current_inode = target->inode;
+    auto* ext = dynamic_cast<Ext2File*>(target->get());
+    current_inode = ext->inode;
   }
   return current_inode;
 }
@@ -134,16 +137,12 @@ const char* Ext2::read_file(const inode_t& fd) {
 }
 
 const char* Ext2::read_file(const std::string& path) {
-  inode_t fd = get_inode(traverse_path(path));
+  uint32_t inode_n = traverse_path(path);
+  inode_t fd = get_inode(inode_n);
   return read_file(fd);
 }
 
-const std::vector<File> Ext2::list_directory(const std::string& path) {
-  uint32_t inode_n = traverse_path(path);
-  std::vector<directory_entry> dir = list_directory(get_inode(inode_n));
-  std::vector<File> ret_value{};
-  for (const auto& e: dir) {
-    ret_value.push_back(File(e));
-  }
-  return ret_value;
+const std::vector<std::unique_ptr<File>> Ext2::list_directory(const std::string& path) {
+  const inode_t inode = get_inode(traverse_path(path));
+  return list_directory(inode);
 }
