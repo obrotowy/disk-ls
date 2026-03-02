@@ -67,13 +67,12 @@ std::ostream& operator<<(std::ostream& os, const Ext2& fs) {
 }
 
 std::vector<std::unique_ptr<File>> Ext2::list_directory(const inode_t& inode) {
-  const uint8_t* dir = (uint8_t*) (read_file(inode));
-  uint8_t* p = (uint8_t*) dir;
+  const std::vector<char> dir = read_file(inode);
+  uint8_t* p = (uint8_t*) dir.data();
   std::vector<std::unique_ptr<File>> files;
-  while (p - dir < inode.size_lower) {
+  while (p - (uint8_t*) (dir.data()) < inode.size_lower) {
     std::unique_ptr<Ext2File> f = std::make_unique<Ext2File>();
     f->inode = *(uint32_t*)(p);
-    //uint16_t entry_size = *(uint16_t*)(p+4);
     uint8_t name_length = p[6];
     f->type = static_cast<FILE_TYPE>(p[7]);
     char* name = new char[name_length+1];
@@ -113,30 +112,32 @@ uint32_t Ext2::traverse_path(const std::string& path, const int& starting_inode 
   return current_inode;
 }
 
-const char* Ext2::read_file(const inode_t& fd) {
+const std::vector<char> Ext2::read_file(const inode_t& fd) {
   const size_t& fsize = fd.size_lower;
   if (fsize > BLOCK_SIZE * 12)
     // File don't fit in direct block pointers
     throw std::exception();
 
-  char* output_buf = new char[fsize];
+  std::vector<char> output_buf(fsize);
   int whole_blocks = fsize / BLOCK_SIZE;
   int remainder = fsize % BLOCK_SIZE;
 
   // Read whole blocks
   for (int i = 0; i<whole_blocks; ++i) {
-    read_block(fd.direct_block_pointer[i], output_buf+i*BLOCK_SIZE);
+    read_block(fd.direct_block_pointer[i], output_buf.data()+i*BLOCK_SIZE);
   }
 
   // Read the remainder from last block of file
-  char tmp_buf[BLOCK_SIZE];
-  read_block(fd.direct_block_pointer[whole_blocks], tmp_buf);
-  memcpy(output_buf + whole_blocks*BLOCK_SIZE, tmp_buf, remainder);
+  if (remainder > 0) {
+    char tmp_buf[BLOCK_SIZE];
+    read_block(fd.direct_block_pointer[whole_blocks], tmp_buf);
+    memcpy(output_buf.data() + whole_blocks*BLOCK_SIZE, tmp_buf, remainder);
+  }
   
   return output_buf;
 }
 
-const char* Ext2::read_file(const std::string& path) {
+const std::vector<char> Ext2::read_file(const std::string& path) {
   uint32_t inode_n = traverse_path(path);
   inode_t fd = get_inode(inode_n);
   return read_file(fd);

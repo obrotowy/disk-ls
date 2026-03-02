@@ -32,9 +32,8 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
 
     
     else if (cmd == "cat") {
-      const char* file = fs.read_file(tokens[1]);
-      std::cout << file << std::endl;
-      delete[] file;
+      const std::vector<char> file = fs.read_file(tokens[1]);
+      std::cout << file.data() << std::endl;
     }
   };
 

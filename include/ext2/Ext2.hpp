@@ -12,7 +12,7 @@
 class Ext2 : public FileSystem {
   public:
     Ext2(Partition& _p);
-    const char* read_file(const std::string& path);
+    const std::vector<char> read_file(const std::string& path);
     const std::vector<std::unique_ptr<File>> list_directory(const std::string& path);
     ~Ext2();
   private:
@@ -26,7 +26,7 @@ class Ext2 : public FileSystem {
     Partition& p;
     uint32_t traverse_path(const std::string& path_elements, const int& starting_inode);
     inode_t get_inode(const uint32_t& inode);
-    const char* read_file(const inode_t& fd);
+    const std::vector<char> read_file(const inode_t& fd);
     void print_block_info(uint32_t block_n);
     void read_block(uint32_t offset, void* buffer) const;
     void write_block(uint32_t offset, const void* data);
