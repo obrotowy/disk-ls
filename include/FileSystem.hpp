@@ -17,6 +17,7 @@ static const std::vector<std::string> split_path(const std::string& path) {
   std::string item;
 
   while (std::getline(ss, item, '/')) {
+    if (item != "")
       path_elements.push_back(item);
   }
   return path_elements;
