@@ -100,8 +100,9 @@ uint32_t Ext2::traverse_path(const std::filesystem::path& path, const int& start
   if (path == "/")
     return 2;
   int current_inode = starting_inode;
-  const std::vector<std::string>& path_elements = split_path(path);
-  for (const auto& e: path_elements) {
+  for (const auto& e: path) {
+    if (e == "/")
+      continue;
     std::vector<std::unique_ptr<File>> curr_dir_listing = list_directory(get_inode(current_inode));
     auto target = std::find_if(curr_dir_listing.begin(), curr_dir_listing.end(), [&](const std::unique_ptr<File>& f){return f->name == e;});
     if (target == curr_dir_listing.end())
