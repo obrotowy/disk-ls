@@ -12,8 +12,8 @@
 class Ext2 : public FileSystem {
   public:
     Ext2(Partition& _p);
-    const std::vector<char> read_file(const std::string& path);
-    const std::vector<std::unique_ptr<File>> list_directory(const std::string& path);
+    const std::vector<char> read_file(const std::filesystem::path& path);
+    const std::vector<std::unique_ptr<File>> list_directory(const std::filesystem::path& path);
     ~Ext2();
   private:
     uint32_t TOTAL_BLOCKS;
@@ -24,7 +24,7 @@ class Ext2 : public FileSystem {
     block_group_descriptor* bgdt;
     size_t INODE_SIZE;
     Partition& p;
-    uint32_t traverse_path(const std::string& path_elements, const int& starting_inode);
+    uint32_t traverse_path(const std::filesystem::path& path, const int& starting_inode);
     inode_t get_inode(const uint32_t& inode);
     const std::vector<char> read_file(const inode_t& fd);
     void print_block_info(uint32_t block_n);

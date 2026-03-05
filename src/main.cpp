@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <sstream>
+#include <filesystem>
 
 void list_partitions(const std::vector<Partition>& partitions) {
   std::cout << "\tStart\tEnd\tSectors\tSize\tType" << std::endl;
@@ -15,8 +16,7 @@ void list_partitions(const std::vector<Partition>& partitions) {
 
 void interface_loop(std::vector<Partition>& partitions, int partition_n) {
   Ext2 fs(partitions[partition_n]);
-  uint32_t current_inode_n = 2;   // start with root directory
-  std::string current_path = "/";
+  std::filesystem::path current_path("/");
 
   auto process_cmd = [&](std::vector<std::string>& tokens) {
     if (tokens.empty()) return;
@@ -38,7 +38,7 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
   };
 
   std::string line;
-  while (std::cout << current_path << "$ " && std::getline(std::cin, line)) {
+  while (std::cout << current_path.string() << "$ " && std::getline(std::cin, line)) {
     std::stringstream ss(line);
     std::string token;
     std::vector<std::string> tokens;

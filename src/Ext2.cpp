@@ -96,7 +96,7 @@ inode_t Ext2::get_inode(const uint32_t& inode_n) {
   return inode_table[index_in_block];
 }
 
-uint32_t Ext2::traverse_path(const std::string& path, const int& starting_inode = 2) {
+uint32_t Ext2::traverse_path(const std::filesystem::path& path, const int& starting_inode = 2) {
   if (path == "/")
     return 2;
   int current_inode = starting_inode;
@@ -137,13 +137,13 @@ const std::vector<char> Ext2::read_file(const inode_t& fd) {
   return output_buf;
 }
 
-const std::vector<char> Ext2::read_file(const std::string& path) {
+const std::vector<char> Ext2::read_file(const std::filesystem::path& path) {
   uint32_t inode_n = traverse_path(path);
   inode_t fd = get_inode(inode_n);
   return read_file(fd);
 }
 
-const std::vector<std::unique_ptr<File>> Ext2::list_directory(const std::string& path) {
+const std::vector<std::unique_ptr<File>> Ext2::list_directory(const std::filesystem::path& path) {
   const inode_t inode = get_inode(traverse_path(path));
   return list_directory(inode);
 }
