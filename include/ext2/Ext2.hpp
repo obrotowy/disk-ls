@@ -14,6 +14,7 @@ class Ext2 : public FileSystem {
     Ext2(Partition& _p);
     const std::vector<char> read_file(const std::filesystem::path& path);
     const std::vector<std::unique_ptr<File>> list_directory(const std::filesystem::path& path);
+    std::unique_ptr<File> get_file_descriptor(const std::filesystem::path& path);
     ~Ext2();
   private:
     uint32_t TOTAL_BLOCKS;

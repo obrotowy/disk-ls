@@ -3,8 +3,14 @@
 #include <string>
 
 enum FILE_TYPE {
+  UNKNOWN,
   REGULAR_FILE,
-  DIRECTORY
+  DIRECTORY,
+  CHARACTER_DEVICE,
+  BLOCK_DEVICE,
+  FIFO,
+  SOCKET,
+  SYMLINK
 };
 
 class File {

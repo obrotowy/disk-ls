@@ -30,9 +30,20 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
       }
     }
 
+    else if (cmd == "cd") {
+      std::unique_ptr<File> f = std::move(fs.get_file_descriptor(current_path / tokens[1]));
+      if (f->type != DIRECTORY)
+        throw std::runtime_error("Not a directory.");
+      current_path /= tokens[1];
+      current_path = current_path.lexically_normal();
+    }
     
     else if (cmd == "cat") {
-      const std::vector<char> file = fs.read_file(tokens[1]);
+      std::filesystem::path p = tokens[1];
+      if (p.is_relative()) {
+        p = current_path / p;
+      }
+      const std::vector<char> file = fs.read_file(p);
       std::cout << file.data() << std::endl;
     }
   };

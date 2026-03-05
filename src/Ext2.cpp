@@ -147,3 +147,15 @@ const std::vector<std::unique_ptr<File>> Ext2::list_directory(const std::filesys
   const inode_t inode = get_inode(traverse_path(path));
   return list_directory(inode);
 }
+
+std::unique_ptr<File> Ext2::get_file_descriptor(const std::filesystem::path &path) {
+  if (!path.has_filename())
+    throw std::runtime_error("Path is invalid.");
+  std::vector<std::unique_ptr<File>> files_in_dir = list_directory(path.parent_path());
+  auto f_it = std::find_if(files_in_dir.begin(), files_in_dir.end(), [&](const std::unique_ptr<File>& f) {return f->name == path.filename();});
+  if (f_it == files_in_dir.end())
+    throw std::runtime_error("File not found.");
+
+  std::unique_ptr<File> f = std::move(*f_it);
+  return f;
+}
