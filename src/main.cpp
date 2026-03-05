@@ -38,6 +38,7 @@ void interface_loop(std::vector<Partition>& partitions, int partition_n) {
   };
 
   std::string line;
+  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   while (std::cout << current_path.string() << "$ " && std::getline(std::cin, line)) {
     std::stringstream ss(line);
     std::string token;
